@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChefAI - AI Influencer Toolkit</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="icon" type="image/png" href="icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #10b981;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-light: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            color: var(--text-dim);
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Glassmorphism Card Base */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        /* Scan Section */
+        .scan-area {
+            text-align: center;
+            border: 2px dashed var(--glass-border);
+            border-radius: 20px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-area:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .scan-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: var(--primary);
+        }
+
+        /* Inventory List */
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-title h2 {
+            font-size: 1.2rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .inventory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info b { font-size: 1rem; }
+        .item-info span { color: var(--text-dim); font-size: 0.85rem; margin-left: 8px; }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn-ai {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn-ai:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Dual Recipe Tabs */
+        .recipe-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .recipe-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .recipe-tab.active {
+            background: var(--primary);
+            border-color: var(--primary-border);
+        }
+
+        .recipe-panel { display: none; margin-top: 15px; }
+        .recipe-panel.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .recipe-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .tag-practical { background: var(--accent); color: white; }
+        .tag-creative { background: var(--secondary); color: white; }
+
+        .recipe-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .recipe-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #preview-img {
+            width: 100%;
+            border-radius: 16px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>ChefAI</h1>
+            <p>스마트 인플루언서 키친 어시스턴트</p>
+        </header>
+
+        <!-- 스캔 섹션 -->
+        <div class="glass-card">
+            <div class="scan-area" onclick="document.getElementById('file-input').click()">
+                <div class="scan-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+                <div style="font-weight: 600; font-size: 1.1rem;">영수증 찍어서 재료 채우기</div>
+                <p style="margin: 5px 0 0; font-size: 0.8rem;">AI가 영수증에서 식재료를 추출합니다</p>
+                <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFile(this)">
+            </div>
+            <img id="preview-img">
+            <div class="loader" id="scan-loader">
+                <div class="spinner"></div>
+                <p>AI가 영수증 분석 중...</p>
+            </div>
+        </div>
+
+        <!-- 인벤토리 섹션 -->
+        <div class="glass-card">
+            <div class="section-title">
+                <h2>🥑 나의 식재료함</h2>
+                <span id="item-count" style="font-size: 0.8rem; opacity: 0.7;">0개 품목</span>
+            </div>
+            <ul class="inventory-list" id="inventory-list">
+                <!-- 아이템이 여기에 추가됨 -->
+            </ul>
+            <p id="empty-msg" style="text-align: center; color: var(--text-dim); font-size: 0.9rem; padding: 20px 0;">아직 보관함이 비어있습니다.</p>
+            
+            <button class="btn-ai" id="btn-suggest" onclick="suggestRecipe()" disabled>
+                <span>✨ AI 레시피 & SNS 캡션 추천</span>
+            </button>
+        </div>
+
+        <!-- 결과 섹션 -->
+        <div id="recipe-result" class="glass-card" style="display:none; animation: slideUp 0.5s ease;">
+            <div class="recipe-tabs">
+                <div class="recipe-tab active" onclick="switchRecipeTab('practical')">🏠 실제 레시피</div>
+                <div class="recipe-tab" onclick="switchRecipeTab('creative')">✨ 창작 레시피</div>
+            </div>
+
+            <div id="practical-panel" class="recipe-panel active"></div>
+            <div id="creative-panel" class="recipe-panel"></div>
+
+            <div class="loader" id="recipe-loader">
+                <div class="spinner"></div>
+                <p>Gemini가 두 가지 요리를 구상 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 백엔드에서 프론트엔드를 서빙하므로 상대 경로를 사용합니다.
+        const API_URL = ''; 
+
+        // 로컬스토리지에서 데이터 로드
+        let inventory = JSON.parse(localStorage.getItem('chefai_inventory') || '[]');
+        let processedReceipts = JSON.parse(localStorage.getItem('chefai_processed_receipts') || '[]');
+
+        function updateInventoryUI() {
+            const list = document.getElementById('inventory-list');
+            const emptyMsg = document.getElementById('empty-msg');
+            const btnSuggest = document.getElementById('btn-suggest');
+            const countSpan = document.getElementById('item-count');
+
+            list.innerHTML = '';
+            countSpan.innerText = `${inventory.length}개 품목`;
+
+            if (inventory.length === 0) {
+                emptyMsg.style.display = 'block';
+                btnSuggest.disabled = true;
+            } else {
+                emptyMsg.style.display = 'none';
+                btnSuggest.disabled = false;
+                inventory.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'inventory-item';
+                    li.innerHTML = `
+                        <div class="item-info">
+                            <b>${item.name}</b>
+                            <span>${item.quantity}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deleteItem(${index})">삭제</button>
+                    `;
+                    list.appendChild(li);
+                });
+            }
+            localStorage.setItem('chefai_inventory', JSON.stringify(inventory));
+            localStorage.setItem('chefai_processed_receipts', JSON.stringify(processedReceipts));
+        }
+
+        function deleteItem(index) {
+            inventory.splice(index, 1);
+            updateInventoryUI();
+        }
+
+        async function handleFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('preview-img');
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+
+            document.getElementById('scan-loader').style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_URL}/analyze-receipt`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Bypass-Tunnel-Reminder': 'true' }
+                });
+                
+                if (!response.ok) throw new Error('분석 실패');
+                const data = await response.json();
+                
+                // 중복 영수증 체크 (Fingerprint: 날짜 + 총액)
+                const fingerprint = `${data.date}_${data.total_price}`;
+                if (processedReceipts.includes(fingerprint)) {
+                    alert('이미 등록된 영수증입니다! 중복 추가를 방지합니다. 🛡️');
+                    return;
+                }
+
+                // 새로운 아이템 추가
+                if (data.items && data.items.length > 0) {
+                    inventory = [...inventory, ...data.items];
+                    processedReceipts.push(fingerprint); // 처리 기록에 추가
+                    updateInventoryUI();
+                    alert(`${data.items.length}개의 재료가 추가되었습니다!`);
+                } else {
+                    alert('추출된 식재료가 없습니다.');
+                }
+            } catch (err) {
+                alert('에러: ' + err.message);
+            } finally {
+                document.getElementById('scan-loader').style.display = 'none';
+            }
+        }
+
+        async function suggestRecipe() {
+            const resultDiv = document.getElementById('recipe-result');
+            const loader = document.getElementById('recipe-loader');
+            const pPanel = document.getElementById('practical-panel');
+            const cPanel = document.getElementById('creative-panel');
+
+            resultDiv.style.display = 'block';
+            pPanel.innerHTML = '';
+            cPanel.innerHTML = '';
+            loader.style.display = 'block';
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch(`${API_URL}/suggest-recipe`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Bypass-Tunnel-Reminder': 'true'
+                    },
+                    body: JSON.stringify({ items: inventory })
+                });
+
+                if (!response.ok) throw new Error('추천 실패');
+                const data = await response.json();
+
+                // 여러 개의 레시피 렌더링
+                if (Array.isArray(data.practical)) {
+                    pPanel.innerHTML = data.practical.map(r => renderRecipeHtml(r, 'practical')).join('');
+                }
+                if (Array.isArray(data.creative)) {
+                    cPanel.innerHTML = data.creative.map(r => renderRecipeHtml(r, 'creative')).join('');
+                }
+                
+                switchRecipeTab('practical');
+
+            } catch (err) {
+                pPanel.innerHTML = `<p style="color:#ef4444;">추천 중 에러가 발생했습니다: ${err.message}</p>`;
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderRecipeHtml(recipe, type) {
+            const tagName = type === 'practical' ? '🏠 실제 레시피' : '✨ 창작 레시피';
+            const tagClass = type === 'practical' ? 'tag-practical' : 'tag-creative';
+            
+            let html = `<div class="recipe-card">`;
+            html += `<div class="recipe-tag ${tagClass}">${tagName}</div>`;
+            html += `<h2 style="font-size:1.4rem; color:var(--secondary); margin:0 0 10px; font-weight:700;">${recipe.recipe_name}</h2>`;
+            html += `<p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">요구 재료: ${recipe.ingredients}</p>`;
+            html += `<h3>👨‍🍳 만드는 법</h3><ul style="padding-left:20px; color:#e2e8f0; line-height:1.6; margin-bottom:20px;">`;
+            recipe.instructions.forEach(step => html += `<li>${step}</li>`);
+            html += `</ul>`;
+            html += `<h3>📱 SNS 캡션</h3>`;
+            html += `
+                <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; margin-top:10px; font-size:0.95rem; position:relative; border:1px solid rgba(255,255,255,0.05);">
+                    ${recipe.caption}
+                    <button class="btn-copy" onclick="copyText(this, this.parentElement.innerText.replace('복사', '').trim())" style="position:absolute; right:10px; top:10px; background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.75rem; cursor:pointer;">복사</button>
+                </div>
+            `;
+            html += `</div>`;
+            return html;
+        }
+
+        function switchRecipeTab(type) {
+            const tabs = document.querySelectorAll('.recipe-tab');
+            const panels = document.querySelectorAll('.recipe-panel');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            if (type === 'practical') {
+                tabs[0].classList.add('active');
+                document.getElementById('practical-panel').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('creative-panel').classList.add('active');
+            }
+        }
+
+        function copyText(btn, text) {
+            navigator.clipboard.writeText(text);
+            const original = btn.innerText;
+            btn.innerText = '복사됨!';
+            setTimeout(() => btn.innerText = original, 2000);
+        }
+
+        // 초기 실행
+        updateInventoryUI();
+    </script>
+</body>
+</html>
