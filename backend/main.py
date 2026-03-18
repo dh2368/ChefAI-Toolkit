@@ -86,13 +86,10 @@ async def suggest_recipe(data: dict):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/manifest.json")
-async def manifest():
-    return FileResponse("../frontend/manifest.json")
-
-@app.get("/")
-async def root():
-    return FileResponse("../frontend/index.html")
+# 프론트엔드 정적 파일 서빙 (절대 경로 설정으로 배포 안정성 확보)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+frontend_dir = os.path.join(current_dir, "../frontend")
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 @app.post("/analyze-receipt")
 async def analyze_receipt(file: UploadFile = File(...)):
