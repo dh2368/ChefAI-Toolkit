@@ -396,18 +396,32 @@
                 
                 if (!response.ok) throw new Error('분석 실패');
                 const data = await response.json();
-                
-                // 중복 영수증 체크 (Fingerprint: 날짜 + 총액)
-                const fingerprint = `${data.date}_${data.total_price}`;
-                if (processedReceipts.includes(fingerprint)) {
-                    alert('이미 등록된 영수증입니다! 중복 추가를 방지합니다. 🛡️');
-                    return;
-                }
-
-                // 새로운 아이템 추가
+                // 똑똑한 중복 방지 로직 (Smart Merge)
                 if (data.items && data.items.length > 0) {
-                    inventory = [...inventory, ...data.items];
-                    processedReceipts.push(fingerprint); // 처리 기록에 추가
+                    const fingerprint = `${data.date}_${data.total_price}`;
+
+                    if (processedReceipts.includes(fingerprint)) {
+                        if (inventory.length === 0) {
+                            // 보관함이 완전히 비어있는 경우
+                            inventory = [...data.items];
+                        } else {
+                            // 보관함에 일부 재료가 있는 경우 (없는 것만 추가)
+                            const currentNames = new Set(inventory.map(i => i.name));
+                            const itemsToMerge = data.items.filter(item => !currentNames.has(item.name));
+                            
+                            if (itemsToMerge.length > 0) {
+                                inventory = [...inventory, ...itemsToMerge];
+                            } else {
+                                alert('이미 모든 식재료가 등록되어 있습니다! 🛡️');
+                                return;
+                            }
+                        }
+                    } else {
+                        // 새로운 영수증인 경우
+                        inventory = [...inventory, ...data.items];
+                        processedReceipts.push(fingerprint);
+                    }
+                    
                     updateInventoryUI();
                     alert(`${data.items.length}개의 재료가 추가되었습니다!`);
                 } else {
