@@ -96,11 +96,7 @@ async def suggest_recipe(data: dict):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# 프론트엔드 정적 파일 서빙 (절대 경로 설정으로 배포 안정성 확보)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-frontend_dir = os.path.join(current_dir, "../frontend")
-app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
-
+# API 엔드포인트는 정적 파일 서빙보다 먼저 정의되어야 합니다.
 @app.post("/analyze-receipt")
 async def analyze_receipt(file: UploadFile = File(...)):
     try:
