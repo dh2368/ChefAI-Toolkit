@@ -15,15 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --accent: #10b981;
-            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-light: #f8fafc;
-            --text-dim: #94a3b8;
+            --primary: #f97316; /* Vibrant Orange */
+            --primary-dark: #ea580c;
+            --secondary: #fbbf24; /* Amber */
+            --accent: #84cc16; /* Fresh Green */
+            --bg-gradient: linear-gradient(135deg, #1a120b 0%, #0d0905 100%); /* Warm Espresso Black */
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-light: #fef3c7; /* Creamy White */
+            --text-dim: #a8a29e;
         }
 
         * {
@@ -221,7 +221,8 @@
             text-transform: uppercase;
         }
         .tag-practical { background: var(--accent); color: white; }
-        .tag-creative { background: var(--secondary); color: white; }
+        .tag-creative { background: #6366f1; color: white; }
+        .tag-quick { background: var(--primary); color: white; }
 
         .recipe-card {
             background: rgba(255, 255, 255, 0.03);
@@ -313,10 +314,12 @@
         <div id="recipe-result" class="glass-card" style="display:none; animation: slideUp 0.5s ease;">
             <div class="recipe-tabs">
                 <div class="recipe-tab active" onclick="switchRecipeTab('practical')">🏠 실제 레시피</div>
+                <div class="recipe-tab" onclick="switchRecipeTab('quick')">⚡ 10분 레시피</div>
                 <div class="recipe-tab" onclick="switchRecipeTab('creative')">✨ 창작 레시피</div>
             </div>
 
             <div id="practical-panel" class="recipe-panel active"></div>
+            <div id="quick-panel" class="recipe-panel"></div>
             <div id="creative-panel" class="recipe-panel"></div>
 
             <div class="loader" id="recipe-loader">
@@ -447,6 +450,9 @@
                 if (Array.isArray(data.practical)) {
                     pPanel.innerHTML = data.practical.map(r => renderRecipeHtml(r, 'practical')).join('');
                 }
+                if (Array.isArray(data.quick)) {
+                    document.getElementById('quick-panel').innerHTML = data.quick.map(r => renderRecipeHtml(r, 'quick')).join('');
+                }
                 if (Array.isArray(data.creative)) {
                     cPanel.innerHTML = data.creative.map(r => renderRecipeHtml(r, 'creative')).join('');
                 }
@@ -461,8 +467,17 @@
         }
 
         function renderRecipeHtml(recipe, type) {
-            const tagName = type === 'practical' ? '🏠 실제 레시피' : '✨ 창작 레시피';
-            const tagClass = type === 'practical' ? 'tag-practical' : 'tag-creative';
+            let tagName, tagClass;
+            if (type === 'practical') {
+                tagName = '🏠 실제 레시피';
+                tagClass = 'tag-practical';
+            } else if (type === 'quick') {
+                tagName = '⚡ 10분 레시피';
+                tagClass = 'tag-quick';
+            } else {
+                tagName = '✨ 창작 레시피';
+                tagClass = 'tag-creative';
+            }
             
             let html = `<div class="recipe-card">`;
             html += `<div class="recipe-tag ${tagClass}">${tagName}</div>`;
@@ -492,8 +507,11 @@
             if (type === 'practical') {
                 tabs[0].classList.add('active');
                 document.getElementById('practical-panel').classList.add('active');
-            } else {
+            } else if (type === 'quick') {
                 tabs[1].classList.add('active');
+                document.getElementById('quick-panel').classList.add('active');
+            } else {
+                tabs[2].classList.add('active');
                 document.getElementById('creative-panel').classList.add('active');
             }
         }
