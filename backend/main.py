@@ -124,18 +124,29 @@ async def analyze_receipt(file: UploadFile = File(...)):
         """
         
         # Gemini 분석 요청 (안정적인 분석 수행)
-        print(f"DEBUG: Analyzing receipt using model {model.model_name}")
+        print(f"DEBUG: Analyzing receipt using model {model.model_name} (Type: {file.content_type})")
+        
+        # 파일 형식에 맞춰 mime_type 설정 (기본값 image/jpeg)
+        mime_type = file.content_type if file.content_type else "image/jpeg"
+        
         response = model.generate_content([
             prompt,
-            {"mime_type": "image/jpeg", "data": content}
+            {"mime_type": mime_type, "data": content}
         ])
         
-        # JSON 형식만 추출 (마크다운태그 제거 등)
+        # JSON 형식만 추출 (마크다운 태그 및 기타 텍스트 제거)
         raw_text = response.text
-        if "```json" in raw_text:
-            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in raw_text:
-            raw_text = raw_text.split("```")[1].split("```")[0].strip()
+        # JSON 블록 찾기
+        import re
+        json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+        if json_match:
+            raw_text = json_match.group(0)
+        else:
+            # 백업: 기존 방식
+            if "```json" in raw_text:
+                raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in raw_text:
+                raw_text = raw_text.split("```")[1].split("```")[0].strip()
             
         result = json.loads(raw_text)
         return result
@@ -143,7 +154,8 @@ async def analyze_receipt(file: UploadFile = File(...)):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        # 상세 에러 메시지 반환 (디버깅 용도)
+        raise HTTPException(status_code=500, detail=f"서버 내부 오류: {str(e)}")
 
 # 프론트엔드 정적 파일 서빙 (모든 API 루트 정의 후 마지막에 배치)
 current_dir = os.path.dirname(os.path.abspath(__file__))
