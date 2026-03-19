@@ -39,17 +39,21 @@ async def suggest_recipe(data: dict):
         prompt = f"""
         내가 지금 가진 식재료 목록이야: {items_str}
         
-        이 재료들을 바탕으로 세 가지 타입의 레시피를 각각 최대 3개씩 제안해줘. (재료가 부족하면 1~2개도 괜찮아):
+        이 재료들을 바탕으로 세 가지 타입의 레시피를 각각 **최대 5개**씩 제안해줘. (재료가 부족하면 2~3개도 괜찮아):
         
         1. '실용 레시피(practical)': 반드시 인터넷이나 요리책 등에 실제로 존재하는(Real-world) 유명하거나 검증된 레시피여야 해. 현재 가진 재료로 만들 수 있는 실제 요리 이름을 찾아서 제안해줘.
         2. '창작 레시피(creative)': AI인 너의 창의성을 발휘하여, 기존에 없던 독특하고 화려한 인플루언서용 새로운 요리를 직접 '발명'해줘. 이 요리는 인터넷에 없을수록 좋아.
         3. '10분 레시피(quick)': 자취생이나 직장인을 위해, 최소한의 재료와 단계로 10분 내에 뚝딱 만들 수 있는 초간단 레시피를 제안해줘. 
         
+        **중요 주의사항**: 
+        - 매번 똑같은 메뉴만 나오지 않도록, 한식, 일식, 중식, 양식, 퓨전 등 최대한 다양한 국적과 조리 스타일(본 요리, 안주, 간식 등)을 섞어서 제안해줘.
+        - 사용자가 이전에 본 적 없는 신선하고 다채로운 아이디어를 우선순위로 둬.
+        
         결과는 반드시 다음과 같은 JSON 형식으로만 응답해줘 (반드시 리스트 형식이어야 함):
         {{
           "practical": [
             {{
-              "recipe_name": "실제 요리 이름 1",
+              "recipe_name": "실제 요리 이름",
               "ingredients": "필요 재료",
               "instructions": ["단계 1", "단계 2", ...],
               "caption": "현실적인 SNS 캡션"
@@ -58,7 +62,7 @@ async def suggest_recipe(data: dict):
           ],
           "creative": [
             {{
-              "recipe_name": "창작 요리 이름 1",
+              "recipe_name": "창작 요리 이름",
               "ingredients": "필요 재료 (추가 필요 재료 포함 가능)",
               "instructions": ["단계 1", "단계 2", ...],
               "caption": "화려한 인플루언서용 SNS 캡션"
@@ -67,7 +71,7 @@ async def suggest_recipe(data: dict):
           ],
           "quick": [
             {{
-              "recipe_name": "10분 요리 이름 1",
+              "recipe_name": "10분 요리 이름",
               "ingredients": "필수 재료",
               "instructions": ["단계 1", "단계 2", ...],
               "caption": "빠르고 실용적인 SNS 캡션"
@@ -78,8 +82,12 @@ async def suggest_recipe(data: dict):
         """
         
         # Gemini 분석 요청 (모델의 내부 지식 기반으로 실용/창의 분리)
-        print(f"DEBUG: Suggesting dual recipes using internal knowledge on model {model.model_name}")
-        response = model.generate_content(prompt)
+        # Temperature를 0.7로 높여 응답의 다양성을 확보합니다.
+        print(f"DEBUG: Suggesting diverse recipes (up to 5) on model {model.model_name}")
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(temperature=0.7)
+        )
         
         # JSON 형식만 추출
         raw_text = response.text
